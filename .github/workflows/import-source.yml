@@ -31,6 +31,8 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Publish complete hackathon project"
+            git commit -m "Publish redesigned investigation experience"
             git push
           fi
+
+# Source sync requested after the investigation-center redesign.
