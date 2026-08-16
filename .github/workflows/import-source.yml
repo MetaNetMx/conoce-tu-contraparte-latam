@@ -31,9 +31,10 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Publish redesigned investigation experience"
+            git commit -m "Publish unified dashboard for steps 3 and 4"
             git push
           fi
 
 # Source sync requested after the investigation-center redesign.
 # Archive excludes this workflow so the runner can safely publish the front-end files.
+# Steps 3 and 4 now share the same visual system.
