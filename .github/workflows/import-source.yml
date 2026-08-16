@@ -36,3 +36,4 @@ jobs:
           fi
 
 # Source sync requested after the investigation-center redesign.
+# Archive excludes this workflow so the runner can safely publish the front-end files.
