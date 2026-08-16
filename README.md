@@ -73,11 +73,9 @@ Copia `.env.example` como `.env.local` y guarda allí una clave de organización
 CROMA_API_KEY=tu_clave
 ```
 
-Opcionalmente protege una vista previa:
+La plataforma pública no requiere usuario ni contraseña. Para la actualización automática de listas configura únicamente:
 
 ```bash
-PREVIEW_USER=demo
-PREVIEW_PASSWORD=una_clave_segura
 CRON_SECRET=un_secreto_aleatorio
 ```
 

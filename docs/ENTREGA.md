@@ -18,7 +18,7 @@
 - [x] Evidencias, fecha y límites de cobertura.
 - [x] Preguntas posteriores al agente.
 - [x] Exportación de reporte e impresión/PDF.
-- [x] Protección de acceso.
+- [x] Acceso público sin usuario ni contraseña.
 - [ ] Prueba final del recorrido en móvil y escritorio.
 
 ## Recomendado
@@ -34,4 +34,4 @@
 - [ ] Confirmar que `.env.local` no esté versionado.
 - [ ] Verificar que ningún dato ficticio se presente como real.
 - [ ] Comprobar los tres casos de demo.
-- [ ] Rotar la contraseña de acceso si se compartió ampliamente.
+- [x] Retirar la contraseña de vista previa para acceso público.
