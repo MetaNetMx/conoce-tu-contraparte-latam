@@ -1,0 +1,21 @@
+:root {
+  --background: #f4f3ee;
+  --foreground: #111714;
+}
+
+* { box-sizing: border-box; padding: 0; margin: 0; }
+html { scroll-behavior: smooth; font-size: 16px; text-size-adjust: 100%; }
+body {
+  min-height: 100vh;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button, textarea, input, select { font-family: inherit; }
+button, a, input, select, summary { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #6f9f39; outline-offset: 3px; }
+::selection { background: #cfff98; color: #111714; }
