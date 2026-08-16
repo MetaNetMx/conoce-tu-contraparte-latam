@@ -45,6 +45,7 @@ const complementarySources = [
 ];
 
 type Step = "search" | "results" | "analyzing" | "report";
+type ScreeningMatch = NonNullable<Analysis["screening"]>["matches"][number];
 type AssistantMessage = {
   role: "user" | "assistant";
   text: string;
@@ -100,10 +101,10 @@ type ResearchResult = {
 };
 
 export default function DueDiligenceApp() {
-  const [country, setCountry] = useState<CountryCode>("CO");
+  const [country, setCountry] = useState<CountryCode>("MX");
   const [subjectType, setSubjectType] = useState<"company" | "person">("company");
   const [searchMode, setSearchMode] = useState<"name" | "id">("name");
-  const [query, setQuery] = useState("Almacenes Exito");
+  const [query, setQuery] = useState("Casa Tequilera El Origen del Tequila");
   const [identifyingDetail, setIdentifyingDetail] = useState("");
   const [relationship, setRelationship] = useState("Proveedor");
   const [step, setStep] = useState<Step>("search");
@@ -208,12 +209,32 @@ export default function DueDiligenceApp() {
     setStep("search");
   }
 
+  function loadExample(example: "company" | "person" | "rfc") {
+    setCountry("MX");
+    setRelationship("Proveedor");
+    setIdentifyingDetail("");
+    setSearchResult(null);
+    setSelected(null);
+    setAnalysis(null);
+    setError("");
+    setStep("search");
+    if (example === "person") {
+      setSubjectType("person");
+      setSearchMode("name");
+      setQuery("Roberto Jiménez Arias");
+      return;
+    }
+    setSubjectType("company");
+    setSearchMode(example === "rfc" ? "id" : "name");
+    setQuery(example === "rfc" ? "SSC190313CY6" : "Casa Tequilera El Origen del Tequila");
+  }
+
   return (
     <main className={styles.page}>
       <nav className={styles.nav} aria-label="Navegación principal">
         <a className={styles.brand} href="#inicio" aria-label="Inicio">
-          <span className={styles.mark}>C</span>
-          <span>Contraparte</span>
+          <span className={styles.mark} aria-hidden="true">◇</span>
+          <span>Contraparte <b>LatAm</b></span>
         </a>
         <div className={styles.navLinks}>
           <a href="#cobertura">Cobertura</a>
@@ -226,12 +247,18 @@ export default function DueDiligenceApp() {
       </nav>
 
       <section className={styles.hero} id="inicio">
-        <div className={styles.eyebrow}>Inteligencia empresarial pública para LatAm</div>
-        <h1>Verifica la contraparte correcta. Decide con contexto.</h1>
+        <div className={styles.eyebrow}>Centro de investigación de contraparte</div>
+        <h1>Ve la conexión.<br />Abre la fuente.</h1>
         <p>
-          Revisa empresas o personas en registros oficiales, listas globales y evidencia
-          pública antes de iniciar una relación comercial.
+          Sigue cada dato desde la consulta hasta el registro oficial. Separamos designaciones,
+          relaciones publicadas y posibles homónimos para que decidas con contexto.
         </p>
+        <div className={styles.flowLegend} aria-label="Cómo se construye el reporte">
+          <span><b>01</b> Identidad</span><i />
+          <span><b>02</b> Fuentes</span><i />
+          <span><b>03</b> Relaciones</span><i />
+          <span><b>04</b> Evidencia exacta</span>
+        </div>
 
         <div className={styles.coverageBar} id="cobertura">
           {countries.map((item) => (
@@ -325,6 +352,15 @@ export default function DueDiligenceApp() {
           </div>
 
           <form onSubmit={search} className={styles.searchForm}>
+            <div className={styles.demoRoutes} aria-label="Ejemplos guiados">
+              <div>
+                <span className={styles.kicker}>Prueba un recorrido</span>
+                <p>Carga un caso para entender cómo se conectan los datos.</p>
+              </div>
+              <button type="button" onClick={() => loadExample("company")}><b>Empresa</b> Casa Tequilera</button>
+              <button type="button" onClick={() => loadExample("person")}><b>Persona</b> Roberto Jiménez Arias</button>
+              <button type="button" onClick={() => loadExample("rfc")}><b>RFC exacto</b> SSC190313CY6</button>
+            </div>
             <fieldset className={styles.subjectPicker}>
               <legend>¿Qué quieres revisar?</legend>
               <div>
@@ -810,13 +846,17 @@ function InvestigationDashboard({
 
 function EvidenceDisclosure({
   item,
+  match,
 }: {
   item: NonNullable<Analysis["evidence"]>[number];
+  match?: ScreeningMatch;
 }) {
   const [open, setOpen] = useState(false);
-  const isOfac = item.title.startsWith("OFAC");
+  const isOfac = item.title.startsWith("OFAC") || match?.source.includes("OFAC");
+  const programs = match?.programs ?? [];
+  const relatedTo = match?.relatedTo ?? [];
   return (
-    <article className={`${styles.evidenceItem} ${open ? styles.evidenceItemOpen : ""}`}>
+    <article className={`${styles.evidenceItem} ${isOfac ? styles.evidenceOfficial : ""} ${open ? styles.evidenceItemOpen : ""}`}>
       <button
         type="button"
         className={styles.evidenceToggle}
@@ -824,15 +864,37 @@ function EvidenceDisclosure({
         onClick={() => setOpen((current) => !current)}
       >
         <b>{isOfac ? "Registro oficial OFAC" : originLabel(item.origin)}</b>
-        <strong>{item.title}</strong>
-        <span>{open ? "Ocultar información" : "Ver información en esta página"}</span>
+        <strong>{match?.name ?? item.title}</strong>
+        <small>{isOfac ? `${programs.length || 1} programa(s) · ficha oficial trazable` : "Evidencia recuperada dentro del reporte"}</small>
+        <span>{open ? "Ocultar ficha" : "Desplegar evidencia"}</span>
       </button>
       {open && (
         <div className={styles.evidenceDetail}>
-          <p>{item.snippet || "La fuente no entregó un extracto. Abre la ficha original para revisar el registro."}</p>
-          <a href={item.url} target="_blank" rel="noreferrer">
-            {isOfac ? "Abrir la ficha específica en OFAC" : "Abrir la fuente original"}
-          </a>
+          {isOfac ? (
+            <div className={styles.officialRegistryCard}>
+              <header><span aria-hidden="true">◇</span><div><small>Fuente primaria</small><h4>OFAC Official Registry</h4></div></header>
+              {match?.recordId && <p className={styles.recordFolio}>Folio del registro <b>{match.recordId}</b></p>}
+              {programs.length > 0 && (
+                <div className={styles.registryPrograms}>
+                  {programs.map((program) => <div key={program}><span>Programa</span><strong>{program}</strong></div>)}
+                </div>
+              )}
+              {relatedTo.length > 0 && (
+                <div className={styles.registryRelationship}>
+                  <span>Vinculado a</span>
+                  {relatedTo.map((name) => <strong key={name}>{name}</strong>)}
+                  <small>Relación publicada por la fuente; no implica culpabilidad por sí sola.</small>
+                </div>
+              )}
+              <p className={styles.registryExcerpt}>{item.snippet || "La fuente no entregó un extracto adicional."}</p>
+              <a href={item.url} target="_blank" rel="noreferrer">Abrir la ficha específica en OFAC ↗</a>
+            </div>
+          ) : (
+            <>
+              <p>{item.snippet || "La fuente no entregó un extracto. Abre la ficha original para revisar el registro."}</p>
+              <a href={item.url} target="_blank" rel="noreferrer">Abrir la fuente original ↗</a>
+            </>
+          )}
         </div>
       )}
     </article>
@@ -1009,9 +1071,12 @@ function Report({
             <span>{analysis.evidence.length} resultado(s)</span>
           </div>
           <div className={styles.evidenceList}>
-            {analysis.evidence.map((item, index) => (
-              <EvidenceDisclosure key={`${item.url}-${index}`} item={item} />
-            ))}
+            {analysis.evidence.map((item, index) => {
+              const match = analysis.screening?.matches.find((candidate) =>
+                candidate.url === item.url || item.title.toLowerCase().includes(candidate.name.toLowerCase()),
+              );
+              return <EvidenceDisclosure key={`${item.url}-${index}`} item={item} match={match} />;
+            })}
           </div>
           <small>Primero revisa el detalle recuperado aquí. Después abre la fuente original para confirmar el contexto completo.</small>
         </div>
