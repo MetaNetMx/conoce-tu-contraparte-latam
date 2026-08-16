@@ -346,8 +346,9 @@ export default function DueDiligenceApp() {
             </div>
             <div className={styles.steps} aria-label="Progreso">
               <span className={styles.stepActive}>1 Buscar</span>
-              <span className={step !== "search" && step !== "analyzing" ? styles.stepActive : ""}>2 Elegir</span>
-              <span className={step === "report" ? styles.stepActive : ""}>3 Analizar</span>
+              <span className={step !== "search" && step !== "analyzing" ? styles.stepActive : ""}>2 Identidad</span>
+              <span className={step === "report" ? styles.stepActive : ""}>3 Dashboard</span>
+              <span className={step === "report" ? styles.stepActive : ""}>4 Evidencia</span>
             </div>
           </div>
 
@@ -847,11 +848,13 @@ function InvestigationDashboard({
 function EvidenceDisclosure({
   item,
   match,
+  defaultOpen = false,
 }: {
   item: NonNullable<Analysis["evidence"]>[number];
   match?: ScreeningMatch;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const isOfac = item.title.startsWith("OFAC") || match?.source.includes("OFAC");
   const programs = match?.programs ?? [];
   const relatedTo = match?.relatedTo ?? [];
@@ -1011,10 +1014,17 @@ function Report({
 
   return (
     <section className={styles.reportSection} aria-live="polite">
-      <InvestigationDashboard analysis={analysis} checkedAt={checkedAt} />
+      <nav className={styles.reportNavigation} aria-label="Secciones del reporte">
+        <a href="#dashboard"><b>03</b><span>Dashboard</span><small>Decisión y relaciones</small></a>
+        <a href="#evidencia"><b>04</b><span>Evidencia exacta</span><small>Detalle y fuente primaria</small></a>
+        <a href="#cobertura-reporte"><b>05</b><span>Cobertura</span><small>Qué se consultó</small></a>
+      </nav>
+      <div id="dashboard">
+        <InvestigationDashboard analysis={analysis} checkedAt={checkedAt} />
+      </div>
       <div className={styles.reportTop}>
         <div>
-          <span className={styles.kicker}>Paso 3 · Revisión completada</span>
+          <span className={styles.kicker}>Paso 3 · Dashboard de decisión</span>
           <h2>{analysis.company}</h2>
           <p>
             {analysis.country}
@@ -1062,11 +1072,12 @@ function Report({
       </div>
 
       {analysis.evidence?.length ? (
-        <div className={styles.evidenceSection}>
+        <div className={styles.evidenceSection} id="evidencia">
           <div className={styles.sectionHeading}>
             <div>
-              <span className={styles.kicker}>Relaciones y coincidencias encontradas</span>
-              <h3>Fuentes oficiales y evidencia pública</h3>
+              <span className={styles.kicker}>Paso 4 · Evidencia exacta</span>
+              <h3>Revisa el dato aquí y confirma en la fuente primaria</h3>
+              <p className={styles.sectionIntro}>Cada ficha indica qué encontró la plataforma, cómo se relaciona con el sujeto y el enlace al registro oficial específico.</p>
             </div>
             <span>{analysis.evidence.length} resultado(s)</span>
           </div>
@@ -1075,7 +1086,7 @@ function Report({
               const match = analysis.screening?.matches.find((candidate) =>
                 candidate.url === item.url || item.title.toLowerCase().includes(candidate.name.toLowerCase()),
               );
-              return <EvidenceDisclosure key={`${item.url}-${index}`} item={item} match={match} />;
+              return <EvidenceDisclosure key={`${item.url}-${index}`} item={item} match={match} defaultOpen={index === 0 && Boolean(match?.source.includes("OFAC"))} />;
             })}
           </div>
           <small>Primero revisa el detalle recuperado aquí. Después abre la fuente original para confirmar el contexto completo.</small>
@@ -1083,7 +1094,7 @@ function Report({
       ) : null}
 
       {analysis.sourceAudit?.length ? (
-        <div className={styles.auditSection}>
+        <div className={styles.auditSection} id="cobertura-reporte">
           <div className={styles.sectionHeading}>
             <div>
               <span className={styles.kicker}>Mapa de cobertura</span>
